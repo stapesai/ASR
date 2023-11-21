@@ -2,6 +2,21 @@
     "material-icon-theme.folders.associations": {
         "experiments": "Project",
         "production": "Src",
-        "TTS": "Audio",
-    }
+        "TTS": "Project",
+        "ASR": "Project",
+        "audio_samples": "Audio",
+        "research_papers": "Pdf",
+        "archived_notebooks": "Archive",
+        "cloned_repos": "Download",
+    },
+    "workbench.colorTheme": "GitHub Dark Default",
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "*/.vscode": true,
+    },
 }
