@@ -1,0 +1,9 @@
+[submodule "experiments/cloned_repos/distil-whisper"]
+	path = experiments/cloned_repos/distil-whisper
+	url = git@github.com:huggingface/distil-whisper.git
+[submodule "experiments/cloned_repos/faster-whisper"]
+	path = experiments/cloned_repos/faster-whisper
+	url = git@github.com:guillaumekln/faster-whisper.git
+[submodule "experiments/cloned_repos/insanely-fast-whisper"]
+	path = experiments/cloned_repos/insanely-fast-whisper
+	url = git@github.com:Vaibhavs10/insanely-fast-whisper.git
