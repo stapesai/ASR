@@ -7,3 +7,27 @@
 [submodule "experiments/cloned_repos/insanely-fast-whisper"]
 	path = experiments/cloned_repos/insanely-fast-whisper
 	url = git@github.com:Vaibhavs10/insanely-fast-whisper.git
+[submodule "experiments/cloned_repos/whisper.cpp"]
+	path = experiments/cloned_repos/whisper.cpp
+	url = git@github.com:ggerganov/whisper.cpp.git
+[submodule "experiments/cloned_repos/whisper_real_time"]
+	path = experiments/cloned_repos/whisper_real_time
+	url = git@github.com:davabase/whisper_real_time.git
+[submodule "experiments/cloned_repos/whisper-asr-webservice"]
+	path = experiments/cloned_repos/whisper-asr-webservice
+	url = git@github.com:ahmetoner/whisper-asr-webservice.git
+[submodule "experiments/cloned_repos/whisper-diarization"]
+	path = experiments/cloned_repos/whisper-diarization
+	url = git@github.com:MahmoudAshraf97/whisper-diarization.git
+[submodule "experiments/cloned_repos/whisper-jax"]
+	path = experiments/cloned_repos/whisper-jax
+	url = git@github.com:sanchit-gandhi/whisper-jax.git
+[submodule "experiments/cloned_repos/whisper-jax-colab"]
+	path = experiments/cloned_repos/whisper-jax-colab
+	url = git@github.com:camenduru/whisper-jax-colab.git
+[submodule "experiments/cloned_repos/whisper-large-v3"]
+	path = experiments/cloned_repos/whisper-large-v3
+	url = git@hf.co:spaces/hf-audio/whisper-large-v3
+[submodule "experiments/whisper"]
+	path = experiments/whisper
+	url = git@github.com:openai/whisper.git

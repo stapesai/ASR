@@ -1,3 +1,8 @@
+"""
+Code in alpha stage. Do not trust blindly.
+Use this instead `git submodule update --remote --checkout --recursive`
+"""
+
 import os
 import subprocess
 
