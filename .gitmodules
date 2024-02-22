@@ -29,5 +29,5 @@
 	path = experiments/cloned_repos/whisper-large-v3
 	url = git@hf.co:spaces/hf-audio/whisper-large-v3
 [submodule "experiments/whisper"]
-	path = experiments/whisper
+	path = experiments/cloned_repos/whisper
 	url = git@github.com:openai/whisper.git
