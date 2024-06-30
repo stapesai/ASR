@@ -28,12 +28,12 @@
 [submodule "experiments/cloned_repos/whisper-large-v3"]
 	path = experiments/cloned_repos/whisper-large-v3
 	url = git@hf.co:spaces/hf-audio/whisper-large-v3
-[submodule "experiments/cloned_repos/whisper"]
-	path = experiments/cloned_repos/whisper
-	url = git@github.com:openai/whisper.git
 
 #TODO: This submodule needs only some files from the main repository
 # but if do like this, it will clone the whole repository
-[submodule "experiments/cloned_repos/transformers"]
-	path = experiments/cloned_repos/transformers
-	url = git@github.com:huggingface/transformers.git
+# [submodule "experiments/cloned_repos/transformers"]
+# 	path = experiments/cloned_repos/transformers
+# 	url = git@github.com:huggingface/transformers.git
+[submodule "experiments/cloned_repos/whisper"]
+	path = experiments/cloned_repos/whisper
+	url = git@github.com:openai/whisper.git
