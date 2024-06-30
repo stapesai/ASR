@@ -1,9 +1,12 @@
 # Path: microservice.py
 
-from utils.whisper import transcribe
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # GPU-0
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
+
+from utils.whisper import transcribe
 
 app = FastAPI()
 
