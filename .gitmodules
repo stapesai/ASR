@@ -34,6 +34,7 @@
 # [submodule "experiments/cloned_repos/transformers"]
 # 	path = experiments/cloned_repos/transformers
 # 	url = git@github.com:huggingface/transformers.git
+
 [submodule "experiments/cloned_repos/whisper"]
 	path = experiments/cloned_repos/whisper
 	url = git@github.com:openai/whisper.git
