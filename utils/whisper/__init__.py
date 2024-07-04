@@ -12,7 +12,7 @@ from typing import Tuple, BinaryIO
 from .utils import load_audio, pad_or_trim
 
 SAMPLE_RATE = 16000
-MODEL_PATH = "models/whisper/whisper-small"
+MODEL_PATH = "models/whisper/whisper-medium"
 
 processor = WhisperProcessor.from_pretrained(MODEL_PATH)
 
