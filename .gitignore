@@ -1,5 +1,5 @@
 .DS_Store
 venv/
-models/
+.conda/
 .env
 **/__pycache__/
