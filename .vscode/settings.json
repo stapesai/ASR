@@ -19,5 +19,6 @@
         "**/Thumbs.db": true,
         "**/.vscode": true,
         "**/.conda": true,
+        "**/__pycache__": true,
     },
 }
