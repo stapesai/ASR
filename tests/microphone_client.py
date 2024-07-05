@@ -1,15 +1,13 @@
 # Path: tests/microphone_client.py
 
 import pyaudio
-import asyncio
-import websockets
+from websockets.sync.client import connect
 
 CHUNK_SIZE = 1024
-#TODO: Change the FORMAT to pyaudio.paInt16
-FORMAT = pyaudio.paFloat32
+FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 16000
-END_OF_STREAM_SIGNAL = b'\x00\x00\x00\x00'
+END_OF_SPEECH_SIGNAL = b'\x00\x00\x00\x00'
 
 def list_microphones():
     p = pyaudio.PyAudio()
@@ -25,18 +23,9 @@ def list_microphones():
     p.terminate()
     return devices
 
-async def record_audio(stream, websocket):
-    while stream.is_active():
-        data = stream.read(CHUNK_SIZE)
-        await websocket.send(data)
-        await asyncio.sleep(0.01)  # small delay to simulate real-time streaming
-
-async def send_end_of_stream_signal(websocket):
-    await websocket.send(END_OF_STREAM_SIGNAL)
-
-async def main():
-    server_ip = input("Enter server IP address: ") or "localhost"
-    server_port = input("Enter server port: ") or 8000
+def main():
+    server_ip = input("Enter server IP address (default: 192.168.0.253): ") or "192.168.0.253"
+    server_port = input("Enter server port (default: 8000): ") or 8000
     server_url = f"ws://{server_ip}:{server_port}/ws/transcribe"
 
     devices = list_microphones()
@@ -54,23 +43,39 @@ async def main():
                     input_device_index=mic_index,
                     frames_per_buffer=CHUNK_SIZE)
 
-    async with websockets.connect(server_url) as websocket:
-        print("Connection established")
-        print("Press Enter to stop recording and send the stream to the ASR server")
+    try:
+        with connect(server_url) as websocket:
+            print("Connection established")
 
-        record_task = asyncio.create_task(record_audio(stream, websocket))
+            while True:
+                input("Press Enter to start recording...")
+                print("Recording... Press Ctrl+C to stop.")
 
-        await asyncio.get_event_loop().run_in_executor(None, input)
+                stream.start_stream()
+                try:
+                    while True:
+                        data = stream.read(CHUNK_SIZE)
+                        websocket.send(data)
+                except KeyboardInterrupt:
+                    pass
 
+                stream.stop_stream()
+                websocket.send(END_OF_SPEECH_SIGNAL)
+
+                print("Stopped recording. Waiting for ASR response...")
+                response = websocket.recv()
+                print("ASR Server Response:", response)
+
+    except KeyboardInterrupt:
+        print("Exiting...")
+        
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    finally:
         stream.stop_stream()
         stream.close()
         p.terminate()
 
-        await send_end_of_stream_signal(websocket)
-        await record_task
-
-        response = await websocket.recv()
-        print("ASR Server Response:", response)
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
