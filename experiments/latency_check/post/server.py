@@ -5,10 +5,6 @@ This FastAPI server is designed to accept audio files via a POST request.
 The audio files are uploaded as raw binary data and the server responds
 with the filename and size of the received file.
 
-Dependencies:
-- fastapi
-- uvicorn
-
 To run the server, execute the following command:
     python server.py
 """
