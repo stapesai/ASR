@@ -1,15 +1,12 @@
 // Path: lib/recording_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'websocket_service.dart';
 import 'audio_stream_service.dart';
-import 'package:provider/provider.dart';
-import 'dart:typed_data';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
+import 'audio_player.dart';
 
-class RecordingScreen extends StatelessWidget {
+class RecordingScreen extends StatefulWidget {
   final String serverIp;
   final int serverPort;
 
@@ -19,93 +16,88 @@ class RecordingScreen extends StatelessWidget {
     required this.serverPort,
   });
 
-  Uint8List _addWavHeader(
-      Uint8List pcmData, int sampleRate, int channels, int bitsPerSample) {
-    final int byteRate = sampleRate * channels * bitsPerSample ~/ 8;
-    final int blockAlign = channels * bitsPerSample ~/ 8;
-    final int subchunk2Size = pcmData.length;
-    final int chunkSize = 36 + subchunk2Size;
+  @override
+  RecordingScreenState createState() => RecordingScreenState();
+}
 
-    final ByteData header = ByteData(44);
-    header.setUint32(0, 0x52494646, Endian.big); // "RIFF"
-    header.setUint32(4, chunkSize, Endian.little);
-    header.setUint32(8, 0x57415645, Endian.big); // "WAVE"
-    header.setUint32(12, 0x666d7420, Endian.big); // "fmt "
-    header.setUint32(16, 16, Endian.little); // Subchunk1Size
-    header.setUint16(20, 1, Endian.little); // AudioFormat (PCM)
-    header.setUint16(22, channels, Endian.little);
-    header.setUint32(24, sampleRate, Endian.little);
-    header.setUint32(28, byteRate, Endian.little);
-    header.setUint16(32, blockAlign, Endian.little);
-    header.setUint16(34, bitsPerSample, Endian.little);
-    header.setUint32(36, 0x64617461, Endian.big); // "data"
-    header.setUint32(40, subchunk2Size, Endian.little);
+class RecordingScreenState extends State<RecordingScreen> {
+  late ScrollController _scrollController;
+  late AudioStreamService audioStreamService;
 
-    return Uint8List.fromList([...header.buffer.asUint8List(), ...pcmData]);
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    final String url = 'ws://${widget.serverIp}:${widget.serverPort}/v1/ws/transcribe';
+    final WebSocketService webSocketService = WebSocketService(url: url);
+    audioStreamService = AudioStreamService(webSocketService: webSocketService);
+
+    audioStreamService.addListener(_scrollToBottom);
   }
 
-  Future<void> _playAudio(Uint8List audioBytes) async {
-    final tempDir = await getTemporaryDirectory();
-    final file = File(
-        '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.wav');
-
-    // Add WAV header to the audio data
-    final wavData = _addWavHeader(audioBytes, 16000, 1, 16);
-
-    await file.writeAsBytes(wavData);
-    print("File path: ${file.path}");
-    print("File size: ${await file.length()} bytes");
-
-    final player = AudioPlayer();
-    try {
-      await player.play(DeviceFileSource(file.path));
-    } catch (e) {
-      print("Error playing audio: $e");
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final String url = 'ws://$serverIp:$serverPort/v1/ws/transcribe';
-    final WebSocketService webSocketService = WebSocketService(url: url);
-    final AudioStreamService audioStreamService =
-        AudioStreamService(webSocketService: webSocketService);
+  void dispose() {
+    _scrollController.dispose();
+    audioStreamService.removeListener(_scrollToBottom);
+    super.dispose();
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Recording'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () {
+              audioStreamService.clearSessionInfo();
+            },
+          ),
+        ],
       ),
-      body: ChangeNotifierProvider(
-        create: (_) => audioStreamService,
+      body: ChangeNotifierProvider.value(
+        value: audioStreamService,
         child: Consumer<AudioStreamService>(
           builder: (context, service, child) {
             return Column(
               children: [
                 Expanded(
                   child: ListView.builder(
+                    controller: _scrollController,
                     itemCount: service.sessionInfo.length,
                     itemBuilder: (context, index) {
                       final session = service.sessionInfo[index];
                       return Card(
-                        child: ListTile(
-                          title: Text('Transaction ${index + 1}'),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                  'Transcription: ${session['transcription']}'),
-                              Text(
-                                  'Server Processing Time: ${(session['serverProcessingTime'] * 1000).toStringAsFixed(2)} ms'),
-                              Text(
-                                  'Network Latency: ${(session['networkLatency'] * 1000).toStringAsFixed(2)} ms'),
-                              Text(
-                                  'Total Time: ${(session['totalTime'] * 1000).toStringAsFixed(2)} ms'),
-                              ElevatedButton(
-                                onPressed: () => _playAudio(session['audio']),
-                                child: const Text('Play Audio'),
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Transaction ${index + 1}'),
+                                  Text('Transcription: ${session['transcription']}'),
+                                  Text('Server Processing Time: ${(session['serverProcessingTime']).toStringAsFixed(2)} ms'),
+                                  Text('Network Latency: ${(session['networkLatency']).toStringAsFixed(2)} ms'),
+                                  Text('Total Latency: ${(session['totalLatency']).toStringAsFixed(2)} ms'),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            AudioPlayerWidget(audioData: session['audio']),
+                          ],
                         ),
                       );
                     },
@@ -113,17 +105,23 @@ class RecordingScreen extends StatelessWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (service.isRecording) {
-                          service.stopRecording();
-                        } else {
-                          await service.startRecording();
-                        }
-                      },
-                      child: Text(service.isRecording ? 'Stop' : 'Start'),
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (service.isRecording) {
+                        service.stopRecording();
+                      } else {
+                        await service.startRecording();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(200, 50),
+                      elevation: 5,
+                    ),
+                    child: Text(
+                      service.isRecording ? 'Stop' : 'Start',
+                      style: TextStyle(
+                        color: service.isRecording ? Colors.red : Colors.green,
+                      ),
                     ),
                   ),
                 ),

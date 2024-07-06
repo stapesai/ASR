@@ -16,7 +16,11 @@ class WebSocketService {
     _channel.sink.add(data);
   }
 
-  Stream get stream => _channel.stream.map((data) => jsonDecode(data));
+  Stream get stream => _channel.stream.map((data) {
+        final decodedData = jsonDecode(data);
+        // decodedData['process_time'] = decodedData['process_time'] * 1000;
+        return decodedData;
+      });
 
   void close() {
     _channel.sink.close();

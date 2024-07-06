@@ -30,13 +30,12 @@ class AudioStreamService extends ChangeNotifier {
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
       ).handleError((error) {
         print("Error: $error");
-      });
+      }).asBroadcastStream();
 
       await _audioSubscription?.cancel();
 
       isRecording = true;
       _recordedData = [];
-      _startTime = DateTime.now();
       notifyListeners();
 
       _audioSubscription = audioStream.listen((data) {
@@ -44,21 +43,23 @@ class AudioStreamService extends ChangeNotifier {
         webSocketService.sendData(Uint8List.fromList(data));
       });
 
+      _startTime = DateTime.now();
+
       webSocketService.stream.listen((data) {
-        final totalTime =
-            DateTime.now().difference(_startTime!).inMilliseconds / 1000;
+        final serverProcessingTime = (data['process_time'] * 1000).toInt();
         final transcription = data['transcription'];
-        final serverProcessingTime = data['process_time'];
+        final endTime = DateTime.now();
+
+        final totalLatency = endTime.difference(_startTime!).inMilliseconds;
+        final networkLatency = totalLatency - serverProcessingTime;
 
         sessionInfo.add({
           'audio': Uint8List.fromList(_recordedData),
           'transcription': transcription,
           'serverProcessingTime': serverProcessingTime,
-          'totalTime': totalTime,
-          'networkLatency': totalTime - serverProcessingTime,
+          'networkLatency': networkLatency,
+          'totalLatency': totalLatency,
         });
-
-        // print("Session Info: $sessionInfo");
 
         _recordedData = [];
         _startTime = DateTime.now();
@@ -70,10 +71,16 @@ class AudioStreamService extends ChangeNotifier {
     }
   }
 
-  void stopRecording() async {
+  Future<void> stopRecording() async {
     isRecording = false;
     await _audioSubscription?.cancel();
+    _audioSubscription = null; // Reset the subscription
     notifyListeners();
     webSocketService.sendData([0, 0, 0, 0]); // Send end-of-speech signal
+  }
+
+  void clearSessionInfo() {
+    sessionInfo.clear();
+    notifyListeners();
   }
 }
