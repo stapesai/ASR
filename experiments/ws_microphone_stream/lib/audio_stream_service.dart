@@ -1,5 +1,3 @@
-// Path: lib/audio_stream_service.dart
-
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -11,6 +9,9 @@ class AudioStreamService extends ChangeNotifier {
   StreamSubscription<List<int>>? _audioSubscription;
   bool isRecording = false;
   String? transcription;
+  List<Map<String, dynamic>> sessionInfo = [];
+  List<int> _recordedData = [];
+  DateTime? _startTime;
 
   AudioStreamService({
     required this.webSocketService,
@@ -27,14 +28,28 @@ class AudioStreamService extends ChangeNotifier {
       }).map((buffer) => buffer as List<int>);
 
       isRecording = true;
+      _recordedData = [];
+      _startTime = DateTime.now();
       notifyListeners();
 
       _audioSubscription = audioStream.listen((data) {
+        _recordedData.addAll(data);
         webSocketService.sendData(Uint8List.fromList(data));
       });
 
       webSocketService.stream.listen((data) {
-        transcription = String.fromCharCodes(data);
+        final totalTime = DateTime.now().difference(_startTime!).inMilliseconds / 1000;
+        final serverData = String.fromCharCodes(data).split(',');
+        final serverProcessingTime = double.parse(serverData[0]);
+        final transcription = serverData.sublist(1).join(',');
+
+        sessionInfo.add({
+          'audio': Uint8List.fromList(_recordedData),
+          'transcription': transcription,
+          'serverProcessingTime': serverProcessingTime,
+          'totalTime': totalTime,
+          'networkLatency': totalTime - serverProcessingTime,
+        });
         notifyListeners();
       });
     } catch (e) {
@@ -47,6 +62,5 @@ class AudioStreamService extends ChangeNotifier {
     _audioSubscription?.cancel();
     notifyListeners();
     webSocketService.sendData([0, 0, 0, 0]);
-    webSocketService.close();
   }
 }

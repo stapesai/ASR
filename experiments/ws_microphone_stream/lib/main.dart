@@ -1,8 +1,7 @@
-// Path: lib/main.dart
-
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'recording_screen.dart';
+import 'websocket_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,13 +59,15 @@ class HomeScreen extends StatelessWidget {
                   final serverIp = _ipController.text;
                   final serverPort = int.tryParse(_portController.text);
                   if (serverIp.isNotEmpty && serverPort != null) {
+                    final String url = 'ws://$serverIp:$serverPort/v1/ws/transcribe';
+                    final WebSocketService webSocketService = WebSocketService(url: url);
+
                     Navigator.push(
                       // ignore: use_build_context_synchronously
                       context,
                       MaterialPageRoute(
                         builder: (context) => RecordingScreen(
-                          serverIp: serverIp,
-                          serverPort: serverPort,
+                          webSocketService: webSocketService,
                         ),
                       ),
                     );

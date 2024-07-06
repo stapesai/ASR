@@ -3,6 +3,7 @@
 import pyaudio
 from fastapi import APIRouter, WebSocket
 from fastapi.websockets import WebSocketDisconnect
+# from starlette.websockets import WebSocketDisconnect
 from utils.whisper import transcribe
 
 STREAM_FORMAT = pyaudio.paInt16
@@ -21,7 +22,7 @@ async def websocket_endpoint(websocket: WebSocket):
         None
     """
     await websocket.accept()
-    print("Connection established")
+    # print("Connection established")
     end_of_speech_signal = b'\x00\x00\x00\x00'
 
     try:
@@ -56,4 +57,4 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"An error occurred: {e}")
     finally:
         await websocket.close()
-        print("WebSocket connection closed")
+        # print("WebSocket connection closed")

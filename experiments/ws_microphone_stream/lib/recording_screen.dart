@@ -1,28 +1,31 @@
-// Path: lib/recording_screen.dart
-
 import 'package:flutter/material.dart';
 import 'websocket_service.dart';
 import 'audio_stream_service.dart';
 import 'package:provider/provider.dart';
+import 'dart:typed_data';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 
 class RecordingScreen extends StatelessWidget {
-  final String serverIp;
-  final int serverPort;
+  final WebSocketService webSocketService;
 
   const RecordingScreen({
     super.key,
-    required this.serverIp,
-    required this.serverPort,
+    required this.webSocketService,
   });
+
+  Future<void> _playAudio(Uint8List audioBytes) async {
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.wav');
+    await file.writeAsBytes(audioBytes);
+    final player = AudioPlayer();
+    await player.play(DeviceFileSource(file.path));
+  }
 
   @override
   Widget build(BuildContext context) {
-    final WebSocketService webSocketService = WebSocketService(
-      url: 'ws://$serverIp:$serverPort/v1/ws/transcribe',
-    );
-    final AudioStreamService audioStreamService = AudioStreamService(
-      webSocketService: webSocketService,
-    );
+    final AudioStreamService audioStreamService = AudioStreamService(webSocketService: webSocketService);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,25 +38,47 @@ class RecordingScreen extends StatelessWidget {
             return Column(
               children: [
                 Expanded(
-                  child: Center(
-                    child: service.isRecording
-                        ? const Text('Recording... Press Stop to finish.')
-                        : const Text('Press Start to begin recording.'),
+                  child: ListView.builder(
+                    itemCount: service.sessionInfo.length,
+                    itemBuilder: (context, index) {
+                      final session = service.sessionInfo[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text('Session ${index + 1}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Transcription: ${session['transcription']}'),
+                              Text('Server Processing Time: ${session['serverProcessingTime']} s'),
+                              Text('Network Latency: ${session['networkLatency']} s'),
+                              Text('Total Time: ${session['totalTime']} s'),
+                              ElevatedButton(
+                                onPressed: () => _playAudio(session['audio']),
+                                child: const Text('Play Audio'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: service.isRecording
-                      ? service.stopRecording
-                      : service.startRecording,
-                  child: Text(service.isRecording ? 'Stop' : 'Start'),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (service.isRecording) {
+                          service.stopRecording();
+                        } else {
+                          await service.startRecording();
+                        }
+                      },
+                      child: Text(service.isRecording ? 'Stop' : 'Start'),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                service.transcription != null
-                    ? Text(
-                        'Transcription: ${service.transcription}',
-                        textAlign: TextAlign.center,
-                      )
-                    : Container(),
               ],
             );
           },
