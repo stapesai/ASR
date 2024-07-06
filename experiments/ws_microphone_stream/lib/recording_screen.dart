@@ -19,13 +19,49 @@ class RecordingScreen extends StatelessWidget {
     required this.serverPort,
   });
 
+  Uint8List _addWavHeader(
+      Uint8List pcmData, int sampleRate, int channels, int bitsPerSample) {
+    final int byteRate = sampleRate * channels * bitsPerSample ~/ 8;
+    final int blockAlign = channels * bitsPerSample ~/ 8;
+    final int subchunk2Size = pcmData.length;
+    final int chunkSize = 36 + subchunk2Size;
+
+    final ByteData header = ByteData(44);
+    header.setUint32(0, 0x52494646, Endian.big); // "RIFF"
+    header.setUint32(4, chunkSize, Endian.little);
+    header.setUint32(8, 0x57415645, Endian.big); // "WAVE"
+    header.setUint32(12, 0x666d7420, Endian.big); // "fmt "
+    header.setUint32(16, 16, Endian.little); // Subchunk1Size
+    header.setUint16(20, 1, Endian.little); // AudioFormat (PCM)
+    header.setUint16(22, channels, Endian.little);
+    header.setUint32(24, sampleRate, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, bitsPerSample, Endian.little);
+    header.setUint32(36, 0x64617461, Endian.big); // "data"
+    header.setUint32(40, subchunk2Size, Endian.little);
+
+    return Uint8List.fromList([...header.buffer.asUint8List(), ...pcmData]);
+  }
+
   Future<void> _playAudio(Uint8List audioBytes) async {
     final tempDir = await getTemporaryDirectory();
     final file = File(
         '${tempDir.path}/audio_${DateTime.now().millisecondsSinceEpoch}.wav');
-    await file.writeAsBytes(audioBytes);
+
+    // Add WAV header to the audio data
+    final wavData = _addWavHeader(audioBytes, 16000, 1, 16);
+
+    await file.writeAsBytes(wavData);
+    print("File path: ${file.path}");
+    print("File size: ${await file.length()} bytes");
+
     final player = AudioPlayer();
-    await player.play(DeviceFileSource(file.path));
+    try {
+      await player.play(DeviceFileSource(file.path));
+    } catch (e) {
+      print("Error playing audio: $e");
+    }
   }
 
   @override
@@ -52,14 +88,18 @@ class RecordingScreen extends StatelessWidget {
                       final session = service.sessionInfo[index];
                       return Card(
                         child: ListTile(
-                          title: Text('Session ${index + 1}'),
+                          title: Text('Transaction ${index + 1}'),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Transcription: ${session['transcription']}'),
-                              Text('Server Processing Time: ${(session['serverProcessingTime'] * 1000).toStringAsFixed(2)} ms'),
-                              Text('Network Latency: ${(session['networkLatency'] * 1000).toStringAsFixed(2)} ms'),
-                              Text('Total Time: ${(session['totalTime'] * 1000).toStringAsFixed(2)} ms'),
+                              Text(
+                                  'Transcription: ${session['transcription']}'),
+                              Text(
+                                  'Server Processing Time: ${(session['serverProcessingTime'] * 1000).toStringAsFixed(2)} ms'),
+                              Text(
+                                  'Network Latency: ${(session['networkLatency'] * 1000).toStringAsFixed(2)} ms'),
+                              Text(
+                                  'Total Time: ${(session['totalTime'] * 1000).toStringAsFixed(2)} ms'),
                               ElevatedButton(
                                 onPressed: () => _playAudio(session['audio']),
                                 child: const Text('Play Audio'),

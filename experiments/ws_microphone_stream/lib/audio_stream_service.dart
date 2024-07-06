@@ -22,7 +22,7 @@ class AudioStreamService extends ChangeNotifier {
       print("Recording is already in progress.");
       return;
     }
-    
+
     try {
       Stream<List<int>> audioStream = MicStream.microphone(
         sampleRate: 16000,
@@ -45,7 +45,8 @@ class AudioStreamService extends ChangeNotifier {
       });
 
       webSocketService.stream.listen((data) {
-        final totalTime = DateTime.now().difference(_startTime!).inMilliseconds / 1000;
+        final totalTime =
+            DateTime.now().difference(_startTime!).inMilliseconds / 1000;
         final transcription = data['transcription'];
         final serverProcessingTime = data['process_time'];
 
@@ -57,7 +58,7 @@ class AudioStreamService extends ChangeNotifier {
           'networkLatency': totalTime - serverProcessingTime,
         });
 
-        print("Session Info: $sessionInfo");
+        // print("Session Info: $sessionInfo");
 
         _recordedData = [];
         _startTime = DateTime.now();

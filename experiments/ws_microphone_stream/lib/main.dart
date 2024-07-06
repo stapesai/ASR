@@ -73,13 +73,15 @@ class HomeScreen extends StatelessWidget {
                   } else {
                     // ignore: use_build_context_synchronously
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please enter valid IP and Port')),
+                      const SnackBar(
+                          content: Text('Please enter valid IP and Port')),
                     );
                   }
                 } else {
                   // ignore: use_build_context_synchronously
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Microphone permission is required')),
+                    const SnackBar(
+                        content: Text('Microphone permission is required')),
                   );
                 }
               },
