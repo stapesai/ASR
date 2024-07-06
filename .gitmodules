@@ -38,3 +38,6 @@
 [submodule "experiments/cloned_repos/whisper"]
 	path = experiments/cloned_repos/whisper
 	url = git@github.com:openai/whisper.git
+[submodule "experiments/cloned_repos/silero-vad"]
+	path = experiments/cloned_repos/silero-vad
+	url = git@github.com:snakers4/silero-vad.git
