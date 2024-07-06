@@ -1,7 +1,8 @@
 // Path: lib/websocket_service.dart
 
+import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as status;
+// import 'package:web_socket_channel/status.dart' as status;
 
 class WebSocketService {
   final String url;
@@ -15,9 +16,9 @@ class WebSocketService {
     _channel.sink.add(data);
   }
 
-  Stream get stream => _channel.stream;
+  Stream get stream => _channel.stream.map((data) => jsonDecode(data));
 
   void close() {
-    _channel.sink.close(status.goingAway);
+    _channel.sink.close();
   }
 }

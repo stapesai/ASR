@@ -1,3 +1,5 @@
+// Path: lib/audio_stream_service.dart
+
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -13,11 +15,14 @@ class AudioStreamService extends ChangeNotifier {
   List<int> _recordedData = [];
   DateTime? _startTime;
 
-  AudioStreamService({
-    required this.webSocketService,
-  });
+  AudioStreamService({required this.webSocketService});
 
   Future<void> startRecording() async {
+    if (isRecording) {
+      print("Recording is already in progress.");
+      return;
+    }
+    
     try {
       Stream<List<int>> audioStream = MicStream.microphone(
         sampleRate: 16000,
@@ -25,7 +30,9 @@ class AudioStreamService extends ChangeNotifier {
         channelConfig: ChannelConfig.CHANNEL_IN_MONO,
       ).handleError((error) {
         print("Error: $error");
-      }).map((buffer) => buffer as List<int>);
+      });
+
+      await _audioSubscription?.cancel();
 
       isRecording = true;
       _recordedData = [];
@@ -39,9 +46,8 @@ class AudioStreamService extends ChangeNotifier {
 
       webSocketService.stream.listen((data) {
         final totalTime = DateTime.now().difference(_startTime!).inMilliseconds / 1000;
-        final serverData = String.fromCharCodes(data).split(',');
-        final serverProcessingTime = double.parse(serverData[0]);
-        final transcription = serverData.sublist(1).join(',');
+        final transcription = data['transcription'];
+        final serverProcessingTime = data['process_time'];
 
         sessionInfo.add({
           'audio': Uint8List.fromList(_recordedData),
@@ -50,6 +56,12 @@ class AudioStreamService extends ChangeNotifier {
           'totalTime': totalTime,
           'networkLatency': totalTime - serverProcessingTime,
         });
+
+        print("Session Info: $sessionInfo");
+
+        _recordedData = [];
+        _startTime = DateTime.now();
+
         notifyListeners();
       });
     } catch (e) {
@@ -57,10 +69,10 @@ class AudioStreamService extends ChangeNotifier {
     }
   }
 
-  void stopRecording() {
+  void stopRecording() async {
     isRecording = false;
-    _audioSubscription?.cancel();
+    await _audioSubscription?.cancel();
     notifyListeners();
-    webSocketService.sendData([0, 0, 0, 0]);
+    webSocketService.sendData([0, 0, 0, 0]); // Send end-of-speech signal
   }
 }

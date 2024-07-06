@@ -40,6 +40,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     break
                 audio_data.extend(data)
             
+            # Save raw audio data to a file
+            with open("temp_last_audio.raw", "wb") as f:
+                f.write(audio_data)
+            
             # Process the received audio data using the transcribe function
             print(f"Processing {len(audio_data)} bytes ≈ ({len(audio_data) / (16_000 * STREAM_FORMAT.bit_length())}s) of audio bytes")
             transcription, process_time = transcribe(audio_data)
