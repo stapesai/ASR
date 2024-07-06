@@ -6,13 +6,13 @@ from transformers import (
     WhisperConfig,
 )
 import torch
-from time import perf_counter
+import time
 from typing import Tuple, BinaryIO
 
 from .utils import load_audio, pad_or_trim
 
 SAMPLE_RATE = 16000
-MODEL_PATH = "models/whisper/whisper-tiny"
+MODEL_PATH = "models/whisper/whisper-medium"
 
 processor = WhisperProcessor.from_pretrained(MODEL_PATH)
 
@@ -31,9 +31,14 @@ def transcribe(audio_file: BinaryIO) -> Tuple[str, float]:
     Args:
         file_path (BinaryIO): The audio file to transcribe.
     """
-    start_time = perf_counter()
+    start_time = time.perf_counter()
     
     audio = load_audio(audio_file)
+    
+    # Save audio to disk (only for dev env)
+    import soundfile as sf
+    sf.write("temp_last_audio.wav", audio, SAMPLE_RATE)
+    
     audio = pad_or_trim(audio)
     
     input_features = processor(
@@ -44,12 +49,13 @@ def transcribe(audio_file: BinaryIO) -> Tuple[str, float]:
         logits = model.generate(
             input_features=input_features,
             language='en',
+            forced_decoder_ids=None,
             use_cache=True,
             return_timestamps=False,
         )
     
     transcription = processor.batch_decode(logits, skip_special_tokens=True)[0]
 
-    end_time = perf_counter()
+    end_time = time.perf_counter()
     
     return transcription, end_time - start_time
