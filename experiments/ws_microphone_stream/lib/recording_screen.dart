@@ -80,7 +80,8 @@ class RecordingScreenState extends State<RecordingScreen> {
                     controller: _scrollController,
                     // reverse: true,
                     itemCount: service.sessionInfo.length,
-                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 1),
                     itemBuilder: (context, index) {
                       final session = service
                           .sessionInfo[service.sessionInfo.length - 1 - index];

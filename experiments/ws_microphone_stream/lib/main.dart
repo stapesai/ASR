@@ -91,7 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(fontSize: 16, color: Colors.green),
                     ),
                     TextSpan(
-                      text: 'IP: ${dotenv.env['DEVASHISH_SERVER_IP']}, Port: ${dotenv.env['DEVASHISH_SERVER_PORT']}',
+                      text:
+                          'IP: ${dotenv.env['DEVASHISH_SERVER_IP']}, Port: ${dotenv.env['DEVASHISH_SERVER_PORT']}',
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.blue,
@@ -110,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleCustomServerConnection() async {
     final status = await Permission.microphone.status;
     if (!mounted) return;
-    
+
     if (status.isGranted) {
       final serverIp = _ipController.text;
       final serverPort = int.tryParse(_portController.text);
@@ -126,14 +127,12 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Please enter valid IP and Port')),
+          const SnackBar(content: Text('Please enter valid IP and Port')),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Microphone permission is required')),
+        const SnackBar(content: Text('Microphone permission is required')),
       );
     }
   }
@@ -141,10 +140,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _handleDevashishServerConnection() async {
     final status = await Permission.microphone.status;
     if (!mounted) return;
-    
+
     if (status.isGranted) {
       final serverIp = dotenv.env['DEVASHISH_SERVER_IP'];
-      final serverPort = int.tryParse(dotenv.env['DEVASHISH_SERVER_PORT'] ?? '');
+      final serverPort =
+          int.tryParse(dotenv.env['DEVASHISH_SERVER_PORT'] ?? '');
       if (serverIp != null && serverPort != null) {
         Navigator.push(
           context,
@@ -158,13 +158,13 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Server details not found in environment variables')),
+              content:
+                  Text('Server details not found in environment variables')),
         );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Microphone permission is required')),
+        const SnackBar(content: Text('Microphone permission is required')),
       );
     }
   }

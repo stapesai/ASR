@@ -59,6 +59,8 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"WebSocket disconnected with code {e.code}, reason: {e.reason}")
     except Exception as e:
         print(f"An error occurred: {e}")
-    finally:
         await websocket.close()
+    finally:
+        pass
+        # await websocket.close()
         # print("WebSocket connection closed")

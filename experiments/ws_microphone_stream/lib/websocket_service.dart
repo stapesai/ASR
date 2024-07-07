@@ -2,7 +2,6 @@
 
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
-// import 'package:web_socket_channel/status.dart' as status;
 
 class WebSocketService {
   final String url;
@@ -18,7 +17,6 @@ class WebSocketService {
 
   Stream get stream => _channel.stream.map((data) {
         final decodedData = jsonDecode(data);
-        // decodedData['process_time'] = decodedData['process_time'] * 1000;
         return decodedData;
       });
 
