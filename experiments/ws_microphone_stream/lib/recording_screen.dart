@@ -27,8 +27,9 @@ class RecordingScreenState extends State<RecordingScreen> {
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController();
-    final String url = 'ws://${widget.serverIp}:${widget.serverPort}/v1/ws/transcribe';
+    _scrollController = ScrollController(initialScrollOffset: 0.0);
+    final String url =
+        'ws://${widget.serverIp}:${widget.serverPort}/v1/ws/transcribe';
     final WebSocketService webSocketService = WebSocketService(url: url);
     audioStreamService = AudioStreamService(webSocketService: webSocketService);
 
@@ -36,13 +37,15 @@ class RecordingScreenState extends State<RecordingScreen> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
@@ -73,13 +76,17 @@ class RecordingScreenState extends State<RecordingScreen> {
             return Column(
               children: [
                 Expanded(
-                  child: ListView.builder(
+                  child: ListView.separated(
                     controller: _scrollController,
+                    // reverse: true,
                     itemCount: service.sessionInfo.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {
-                      final session = service.sessionInfo[index];
+                      final session = service
+                          .sessionInfo[service.sessionInfo.length - 1 - index];
                       return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -89,10 +96,14 @@ class RecordingScreenState extends State<RecordingScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text('Transaction ${index + 1}'),
-                                  Text('Transcription: ${session['transcription']}'),
-                                  Text('Server Processing Time: ${(session['serverProcessingTime']).toStringAsFixed(2)} ms'),
-                                  Text('Network Latency: ${(session['networkLatency']).toStringAsFixed(2)} ms'),
-                                  Text('Total Latency: ${(session['totalLatency']).toStringAsFixed(2)} ms'),
+                                  Text(
+                                      'Transcription: ${session['transcription']}'),
+                                  Text(
+                                      'Server Processing Time: ${(session['serverProcessingTime']).toStringAsFixed(2)} ms'),
+                                  Text(
+                                      'Network Latency: ${(session['networkLatency']).toStringAsFixed(2)} ms'),
+                                  Text(
+                                      'Total Latency: ${(session['totalLatency']).toStringAsFixed(2)} ms'),
                                 ],
                               ),
                             ),
