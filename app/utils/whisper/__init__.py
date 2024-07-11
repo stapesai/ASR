@@ -9,17 +9,17 @@ import torch
 import time
 from typing import Tuple, BinaryIO
 
-from .utils import load_audio, pad_or_trim
+from app.utils import load_audio, pad_or_trim
+from app.config import settings
 
 SAMPLE_RATE = 16000
-MODEL_PATH = "models/whisper/whisper-medium"
 
-processor = WhisperProcessor.from_pretrained(MODEL_PATH)
+processor = WhisperProcessor.from_pretrained(settings.MODEL_PATH)
 
-config = WhisperConfig.from_pretrained(MODEL_PATH)
+config = WhisperConfig.from_pretrained(settings.MODEL_PATH)
 
 model = WhisperForConditionalGeneration(config=config).from_pretrained(
-    MODEL_PATH,
+    settings.MODEL_PATH,
     torch_dtype=torch.float16,
     low_cpu_mem_usage=True,
 ).to('cuda:0')

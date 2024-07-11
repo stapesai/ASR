@@ -1,9 +1,6 @@
 {
     "material-icon-theme.folders.associations": {
         "experiments": "Project",
-        "production": "Src",
-        "TTS": "Project",
-        "ASR": "Project",
         "audio_samples": "Audio",
         "research_papers": "Pdf",
         "archived_notebooks": "Archive",

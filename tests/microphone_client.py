@@ -94,7 +94,7 @@ def main():
                 
                 try:
                     while True:
-                        data = stream.read(CHUNK_SIZE)
+                        data = stream.read(CHUNK_SIZE, exception_on_overflow=False)
                         websocket.send(data)
                 except KeyboardInterrupt:
                     pass

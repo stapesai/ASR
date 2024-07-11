@@ -24,23 +24,16 @@ def load_audio(file: Union[BinaryIO, bytearray], sr: int = SAMPLE_RATE, start_ti
     """
     try:
         if isinstance(file, bytearray):
-            # Convert raw bytes to a wav file
-            with io.BytesIO(file) as byte_io:
-                out, _ = (
-                    ffmpeg.input("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
-                    .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
-                    .run(cmd="ffmpeg", capture_stdout=True, capture_stderr=True, input=byte_io.read())
-                )
-        else:
-            # Load audio from a file-like object
-            out, _ = (
-                ffmpeg.input("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
-                .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
-                .run(cmd="ffmpeg", capture_stdout=True, capture_stderr=True, input=file.read())
-            )
-
+            file = io.BytesIO(file)
+        
         # This launches a subprocess to decode audio while down-mixing and resampling as necessary.
         # Requires the ffmpeg CLI and `ffmpeg-python` package to be installed.
+        out, _ = (
+            ffmpeg.input("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
+            .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
+            .run(cmd="ffmpeg", capture_stdout=True, capture_stderr=True, input=file.read())
+        )
+
         # out, _ = (
         #     ffmpeg.input("pipe:", threads=0)
         #     .output("-", format="s16le", acodec="pcm_s16le", ac=1, ar=sr)
@@ -51,9 +44,10 @@ def load_audio(file: Union[BinaryIO, bytearray], sr: int = SAMPLE_RATE, start_ti
         error_message = e.stderr.decode()
         print(f"Failed to load audio: {error_message}")
         raise RuntimeError(f"Failed to load audio: {error_message}") from e
+    
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
-        raise
+        raise RuntimeError(f"An unexpected error occurred: {str(e)}") from e
 
     return np.frombuffer(out, np.int16).flatten().astype(dtype) / 32768.0
 

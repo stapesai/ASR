@@ -1,4 +1,4 @@
-# Filename: routers/v1/stream_transcription.py
+# Path: app/routers/v1/stream_transcription.py
 
 import pyaudio
 from fastapi import APIRouter, WebSocket

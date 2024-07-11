@@ -1,12 +1,10 @@
-# Filename: server.py
-
-import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # GPU-0
+# Path: app/__init__.py
 
 from fastapi import FastAPI
 import uvicorn
-from routers.v1 import router as v1_router
-# from routers.v2 import router as v2_router
+from app.routers.v1 import router as v1_router
+# from app.routers.v2 import router as v2_router
+from app.config import settings
 
 app = FastAPI(
     docs_url=None,
@@ -18,7 +16,6 @@ app.include_router(v1_router, prefix="/v1", tags=["v1"])
 
 # Include the latest version router as the default (v2 in this case)
 # app.include_router(v2_router, tags=["default"])
-app.include_router(v1_router, tags=["default"])
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT)
