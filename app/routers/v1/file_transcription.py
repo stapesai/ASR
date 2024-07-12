@@ -2,9 +2,10 @@
 
 from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import JSONResponse
-from utils.whisper import transcribe
+from app.utils.whisper import transcribe
 
 router = APIRouter()
+
 
 @router.post("/transcribe")
 async def transcribe_audio(audio_file: UploadFile = File(...)):
@@ -18,6 +19,4 @@ async def transcribe_audio(audio_file: UploadFile = File(...)):
         JSONResponse: A JSON response containing the transcription and processing time.
     """
     transcription, process_time = transcribe(audio_file.file)
-    return JSONResponse(
-        content={"transcription": transcription, "process_time": process_time}
-    )
+    return JSONResponse(content={"transcription": transcription, "process_time": process_time})

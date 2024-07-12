@@ -1,8 +1,9 @@
-# Path: app/__init__.py
+# Path: app/__main__.py
 
 from fastapi import FastAPI
 import uvicorn
 from app.routers.v1 import router as v1_router
+
 # from app.routers.v2 import router as v2_router
 from app.config import settings
 

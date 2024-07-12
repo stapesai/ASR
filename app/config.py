@@ -4,20 +4,20 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
 from typing import List, Any
-from app.logging import logger
+# from app._logging import logger
 
 
 class Settings(BaseSettings):
     # Environment Configuration
     ENV: str
-    
+
     MODEL_PATH: str
     CUDA_VISIBLE_DEVICES: str
-    
-    #TODO: set cuda visible devices to environment variable
+
+    # TODO: set cuda visible devices to environment variable
     # import os
     # os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # GPU-0
-    
+
     HOST: str
     PORT: int
 

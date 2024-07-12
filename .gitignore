@@ -4,3 +4,4 @@ venv/
 .env
 **/temp*
 **/__pycache__/
+app.log
