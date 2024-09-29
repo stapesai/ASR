@@ -41,3 +41,6 @@
 [submodule "experiments/cloned_repos/silero-vad"]
 	path = experiments/cloned_repos/silero-vad
 	url = git@github.com:snakers4/silero-vad.git
+[submodule "experiments/cloned_repos/VoiceStreamAI"]
+	path = experiments/cloned_repos/VoiceStreamAI
+	url = git@github.com:alesaccoia/VoiceStreamAI.git
